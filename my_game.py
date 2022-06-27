@@ -8,6 +8,7 @@ Artwork from https://kenney.nl/assets/space-shooter-redux
 """
 
 import arcade
+import random
 
 
 SPRITE_SCALING = 0.5
@@ -23,6 +24,7 @@ PLAYER_SPEED_Y = 5
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
+OBSTACLE_SPEED = 3
 DASHING_TIME = 0.5
 
 DASHING_KEY = arcade.key.SPACE
@@ -86,6 +88,23 @@ class Player(arcade.Sprite):
             self.bottom = 0
 
 
+class Obstacle(arcade.Sprite):
+    """
+    obsacles to dodge
+    """
+    directions = [
+        [1,0], # right
+        [-1,0] # left
+    ]
+    def __init__(self):
+
+        super().__init__("images/Lasers/laserBlue01.png", SPRITE_SCALING * 8)
+
+        self.center_y = SCREEN_HEIGHT / 2
+        self.center_x = SCREEN_WIDTH / 2
+        self.change_x, self.change_y = random.choice(Obstacle.directions)
+
+
 class PlayerShot(arcade.Sprite):
     """
     A shot fired by the Player
@@ -131,6 +150,7 @@ class MyGame(arcade.Window):
 
         # Variable that will hold a list of shots fired by the player
         self.player_shot_list = None
+        self.obstacle_list = None
 
         # Set up the player info
         self.player_sprite = None
@@ -181,6 +201,9 @@ class MyGame(arcade.Window):
 
         # Sprite lists
         self.player_shot_list = arcade.SpriteList()
+        self.obstacle_list = arcade.SpriteList()
+        for i in range(10):
+            self.obstacle_list.append(Obstacle())
 
         # Create a Player object
         self.player_sprite = Player(
@@ -201,6 +224,9 @@ class MyGame(arcade.Window):
 
         # Draw the player sprite
         self.player_sprite.draw()
+
+        # Draw the obstacles
+        self.obstacle_list.draw()
 
         # Draw players score on screen
         arcade.draw_text(
@@ -239,6 +265,8 @@ class MyGame(arcade.Window):
 
         # Update the player shots
         self.player_shot_list.update()
+
+        self.obstacle_list.update()
 
     def on_key_press(self, key, modifiers):
         """
