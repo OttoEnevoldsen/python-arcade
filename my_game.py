@@ -13,8 +13,8 @@ import arcade
 SPRITE_SCALING = 0.5
 
 # Set the size of the screen
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1200
+SCREEN_HEIGHT = 800
 
 # Variables controlling the player
 PLAYER_LIVES = 3
@@ -23,8 +23,9 @@ PLAYER_SPEED_Y = 5
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
+DASHING_TIME = 0.5
 
-FIRE_KEY = arcade.key.SPACE
+DASHING_KEY = arcade.key.SPACE
 
 class Player(arcade.Sprite):
     """
@@ -45,15 +46,34 @@ class Player(arcade.Sprite):
         # Pass arguments to class arcade.Sprite
         super().__init__(**kwargs)
 
+        self.is_dashing = False
+        self.dashing_time_left = 0
 
-    def update(self):
+    def dash(self):
+        """
+        Enable Dashing
+        """
+        if not self.is_dashing:
+            self.is_dashing = True
+            self.dashing_time_left = DASHING_TIME
+
+    def update(self, delta_time):
         """
         Move the sprite
         """
+        if self.is_dashing:
+            self.dashing_time_left -= delta_time
+            if self.dashing_time_left <= 0:
+                self.is_dashing = False
+                self.dashing_time_left = 0
 
         # Update center_x
-        self.center_x += self.change_x
-        self.center_y += self.change_y
+        if self.is_dashing:
+            self.center_x += self.change_x * 3
+            self.center_y += self.change_y * 3
+        else:
+            self.center_x += self.change_x
+            self.center_y += self.change_y
 
         # Don't let the player move off screen
         if self.left < 0:
@@ -215,7 +235,7 @@ class MyGame(arcade.Window):
             self.player_sprite.change_x = round(self.joystick.x) * PLAYER_SPEED_X
 
         # Update player sprite
-        self.player_sprite.update()
+        self.player_sprite.update(delta_time)
 
         # Update the player shots
         self.player_shot_list.update()
@@ -235,13 +255,8 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
 
-        if key == FIRE_KEY:
-            new_shot = PlayerShot(
-                self.player_sprite.center_x,
-                self.player_sprite.center_y
-            )
-
-            self.player_shot_list.append(new_shot)
+        if key == DASHING_KEY:
+            self.player_sprite.dash()
 
     def on_key_release(self, key, modifiers):
         """
@@ -256,11 +271,6 @@ class MyGame(arcade.Window):
             self.left_pressed = False
         elif key == arcade.key.RIGHT:
             self.right_pressed = False
-
-    def on_joybutton_press(self, joystick, button_no):
-        print("Button pressed:", button_no)
-        # Press the fire key
-        self.on_key_press(FIRE_KEY, [])
 
     def on_joybutton_release(self, joystick, button_no):
         print("Button released:", button_no)
