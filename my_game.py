@@ -14,7 +14,7 @@ import random
 SPRITE_SCALING = 0.5
 
 # Set the size of the screen
-SCREEN_WIDTH = 1200
+SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 
 # Variables controlling the player
@@ -26,6 +26,8 @@ PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
 OBSTACLE_SPEED = 3
 DASHING_TIME = 0.3
+
+
 
 DASHING_KEY = arcade.key.SPACE
 
@@ -93,7 +95,7 @@ class Obstacle(arcade.Sprite):
     obstacles to dodge
     """
     types = {
-        0: {
+        1: {
             "velocities": [
                 [1, 0], # right
                 [-1, 0],  # left
@@ -103,19 +105,40 @@ class Obstacle(arcade.Sprite):
                 [-1, -1],
                 [1, -1],
                 [-1, 1]
-            ]
+            ],
+            "graphics": "images/Meteors/meteorGrey_med2.png"
+        },
+        2: {
+            "velocities": [
+                [2, 0],  # right
+                [-2, 0],  # left
+                [0, 2],  # up
+                [0, - 2] # down
+            ],
+            "graphics": "images/Meteors/meteorBrown_med3.png"
         }
     }
-    def __init__(self, type=0):
+    def __init__(self, type=1):
 
-        super().__init__("images/Lasers/laserRed10.png", SPRITE_SCALING * random.randint(3, 8))
+        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * random.randint(3, 8))
 
         self.center_y = random.randint(0, 800)
         self.center_x = random.randint(0, 1200)
         self.velocity = random.choice(Obstacle.types[type]["velocities"])
         # self.change_x, self.change_y = random.choice(Obstacle.directions)
 
+    def on_update(self, delta_time):
+        self.center_x += self.change_x
+        self.center_y += self.change_y
 
+        if self.left > SCREEN_WIDTH:
+            self.kill()
+        elif self.right < 0:
+            self.kill()
+        elif self.bottom > SCREEN_HEIGHT:
+            self.kill()
+        elif self.top < 0:
+            self.kill()
 
 
 class PlayerShot(arcade.Sprite):
@@ -176,6 +199,9 @@ class MyGame(arcade.Window):
         self.up_pressed = False
         self.down_pressed = False
 
+        # level
+        self.current_level = None
+
         # Get list of joysticks
         joysticks = arcade.get_joysticks()
 
@@ -214,15 +240,34 @@ class MyGame(arcade.Window):
 
         # Sprite lists
         self.player_shot_list = arcade.SpriteList()
-        self.obstacle_list = arcade.SpriteList()
-        for i in range(12):
-            self.obstacle_list.append(Obstacle())
 
         # Create a Player object
         self.player_sprite = Player(
             center_x=PLAYER_START_X,
             center_y=PLAYER_START_Y
         )
+
+        self.current_level = 0
+
+        self.new_level()
+
+    def new_level(self):
+
+        self.obstacle_list = arcade.SpriteList()
+
+        self.current_level += 1
+
+        for i in range(100):
+            # exits game when there is no more levels
+            try:
+                self.obstacle_list.append(Obstacle(type=self.current_level))
+            except KeyError:
+                self.game_over()
+
+    def game_over(self):
+        print("Game Over You Won!!")
+        exit(0)
+
 
     def on_draw(self):
         """
@@ -260,7 +305,7 @@ class MyGame(arcade.Window):
         )
 
         if len(obstacle_colliding_with_player) > 0:
-            print("Hit!")
+            print("Hit!\nYou have {}, lives.".format(self.player_lives))
             self.player_lives -= 1
 
         # Calculate player speed based on the keys pressed
@@ -288,7 +333,13 @@ class MyGame(arcade.Window):
         # Update the player shots
         self.player_shot_list.update()
 
-        self.obstacle_list.update()
+        for o in self.obstacle_list:
+            o.on_update(delta_time)
+
+        if len(self.obstacle_list) == 0:
+            self.new_level()
+
+
 
     def on_key_press(self, key, modifiers):
         """
