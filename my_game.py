@@ -18,14 +18,14 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
 
 # Variables controlling the player
-PLAYER_LIVES = 3
+PLAYER_LIVES = 500
 PLAYER_SPEED_X = 5
 PLAYER_SPEED_Y = 5
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
 OBSTACLE_SPEED = 3
-DASHING_TIME = 0.5
+DASHING_TIME = 0.3
 
 DASHING_KEY = arcade.key.SPACE
 
@@ -40,7 +40,7 @@ class Player(arcade.Sprite):
         """
 
         # Graphics to use for Player
-        kwargs['filename'] = "images/playerShip1_red.png"
+        kwargs['filename'] = "images/playerShip1_blue.png"
 
         # How much to scale the graphics
         kwargs['scale'] = SPRITE_SCALING
@@ -77,7 +77,7 @@ class Player(arcade.Sprite):
             self.center_x += self.change_x
             self.center_y += self.change_y
 
-        # Don't let the player move off screen
+        # Don't let the player move off-screen
         if self.left < 0:
             self.left = 0
         elif self.right > SCREEN_WIDTH - 1:
@@ -90,19 +90,32 @@ class Player(arcade.Sprite):
 
 class Obstacle(arcade.Sprite):
     """
-    obsacles to dodge
+    obstacles to dodge
     """
-    directions = [
-        [1,0], # right
-        [-1,0] # left
-    ]
-    def __init__(self):
+    types = {
+        0: {
+            "velocities": [
+                [1, 0], # right
+                [-1, 0],  # left
+                [0, 1], # up
+                [0, -1], # down
+                [1, 1],
+                [-1, -1],
+                [1, -1],
+                [-1, 1]
+            ]
+        }
+    }
+    def __init__(self, type=0):
 
-        super().__init__("images/Lasers/laserBlue01.png", SPRITE_SCALING * 8)
+        super().__init__("images/Lasers/laserRed10.png", SPRITE_SCALING * random.randint(3, 8))
 
-        self.center_y = SCREEN_HEIGHT / 2
-        self.center_x = SCREEN_WIDTH / 2
-        self.change_x, self.change_y = random.choice(Obstacle.directions)
+        self.center_y = random.randint(0, 800)
+        self.center_x = random.randint(0, 1200)
+        self.velocity = random.choice(Obstacle.types[type]["velocities"])
+        # self.change_x, self.change_y = random.choice(Obstacle.directions)
+
+
 
 
 class PlayerShot(arcade.Sprite):
@@ -188,7 +201,7 @@ class MyGame(arcade.Window):
 
             #self.joystick.
         # Set the background color
-        arcade.set_background_color(arcade.color.AMAZON)
+        arcade.set_background_color(arcade.color.BLACK)
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -202,7 +215,7 @@ class MyGame(arcade.Window):
         # Sprite lists
         self.player_shot_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
-        for i in range(10):
+        for i in range(12):
             self.obstacle_list.append(Obstacle())
 
         # Create a Player object
@@ -230,7 +243,7 @@ class MyGame(arcade.Window):
 
         # Draw players score on screen
         arcade.draw_text(
-            "SCORE: {}".format(self.player_score),  # Text to show
+            "LIVES: {}".format(self.player_lives),  # Text to show
             10,                  # X position
             SCREEN_HEIGHT - 20,  # Y positon
             arcade.color.WHITE   # Color of text
@@ -240,6 +253,15 @@ class MyGame(arcade.Window):
         """
         Movement and game logic
         """
+
+        obstacle_colliding_with_player = arcade.check_for_collision_with_list(
+            self.player_sprite,
+            self.obstacle_list
+        )
+
+        if len(obstacle_colliding_with_player) > 0:
+            print("Hit!")
+            self.player_lives -= 1
 
         # Calculate player speed based on the keys pressed
         self.player_sprite.change_x = 0
