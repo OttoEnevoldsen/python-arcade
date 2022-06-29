@@ -29,6 +29,7 @@ DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
 OBSTACLE_HARMLESS_TIME = 2.5
 OBSTACLE_HARMLESS_ALPHA = 100
+OBSTACLE_HARMLESS_SPEED_FACTOR = 0.3
 
 
 
@@ -156,7 +157,7 @@ class Obstacle(arcade.Sprite):
 
         self.center_y = random.randint(0, SCREEN_HEIGHT)
         self.center_x = random.randint(0, SCREEN_WIDTH)
-        self.change_x, self.change_y = random.choice(Obstacle.types[type]["vectors"])
+        self.speed_x, self.speed_y = random.choice(Obstacle.types[type]["vectors"])
         self.change_x *= speed
         self.change_y *= speed
 
@@ -185,6 +186,14 @@ class Obstacle(arcade.Sprite):
         else:
             self.is_harmless = False
             self.alpha = 255
+
+        if self.is_harmless:
+            self.change_x = self.speed_x * OBSTACLE_HARMLESS_SPEED_FACTOR
+            self.change_y = self.speed_x * OBSTACLE_HARMLESS_SPEED_FACTOR
+        else:
+            self.change_x = self.speed_x
+            self.change_y = self.speed_y
+
 
 
 class PlayerShot(arcade.Sprite):
@@ -399,6 +408,8 @@ class MyGame(arcade.Window):
 
         if len(self.obstacle_list) == 0:
             self.new_level()
+
+
 
 
 
