@@ -52,14 +52,16 @@ class Player(arcade.Sprite):
 
         self.is_dashing = False
         self.dashing_time_left = 0
+        self.dash_cooldown = 0
 
     def dash(self):
         """
         Enable Dashing
         """
-        if not self.is_dashing:
+        if not self.is_dashing and self.dash_cooldown <= 0:
             self.is_dashing = True
             self.dashing_time_left = DASHING_TIME
+            self.dash_cooldown = 1
 
     def update(self, delta_time):
         """
@@ -88,6 +90,9 @@ class Player(arcade.Sprite):
             self.top = SCREEN_HEIGHT - 1
         elif self.bottom < 0:
             self.bottom = 0
+
+        if not self.is_dashing:
+            self.dash_cooldown -= delta_time
 
 
 class Obstacle(arcade.Sprite):
@@ -298,7 +303,7 @@ class MyGame(arcade.Window):
                 self.game_over()
 
     def game_over(self):
-        print("Game Over You Won!!")
+        print("Game Over NOOOOOOOB!!")
         exit(0)
 
 
@@ -340,6 +345,9 @@ class MyGame(arcade.Window):
         if len(obstacle_colliding_with_player) > 0 and self.player_sprite.is_dashing is False:
             # print("Ouch, You have {}, lives.".format(self.player_lives))
             self.player_lives -= 1
+
+        if self.player_lives <= 0:
+            self.game_over()
 
         # Calculate player speed based on the keys pressed
         self.player_sprite.change_x = 0
