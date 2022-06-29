@@ -26,6 +26,9 @@ PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
 OBSTACLE_SPEED = 3
 DASHING_TIME = 0.3
+DASH_COOLDOWN = 1
+OBSTACLE_HARMLESS_TIME = 2.5
+OBSTACLE_HARMLESS_ALPHA = 100
 
 
 
@@ -61,7 +64,7 @@ class Player(arcade.Sprite):
         if not self.is_dashing and self.dash_cooldown <= 0:
             self.is_dashing = True
             self.dashing_time_left = DASHING_TIME
-            self.dash_cooldown = 1
+            self.dash_cooldown = DASH_COOLDOWN
 
     def update(self, delta_time):
         """
@@ -114,7 +117,8 @@ class Obstacle(arcade.Sprite):
                 [1, -1],
                 [-1, 1]
             ],
-            "graphics": "images/Meteors/meteorGrey_med2.png"
+            "graphics": "images/Meteors/meteorGrey_med2.png",
+            "scaling": random.randint(3, 8)
         },
         2: {
             "vectors": [
@@ -127,7 +131,8 @@ class Obstacle(arcade.Sprite):
                 [1, -1],
                 [-1, 1]
             ],
-            "graphics": "images/Meteors/meteorBrown_med3.png"
+            "graphics": "images/Meteors/meteorBrown_med3.png",
+            "scaling": random.randint(3, 8)
         },
         3: {
             "vectors": [
@@ -140,12 +145,14 @@ class Obstacle(arcade.Sprite):
                 [1, -1],
                 [-1, 1]
             ],
-            "graphics": "images/Meteors/meteorGrey_tiny2.png"
+            "graphics": "images/Meteors/meteorGrey_tiny2.png",
+            "scaling": random.randint(3, 8),
         }
     }
     def __init__(self, speed, type=1):
 
-        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * random.randint(3, 8))
+        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * Obstacle.types[type]["scaling"])
+
 
         self.center_y = random.randint(0, SCREEN_HEIGHT)
         self.center_x = random.randint(0, SCREEN_WIDTH)
@@ -153,6 +160,9 @@ class Obstacle(arcade.Sprite):
         self.change_x *= speed
         self.change_y *= speed
 
+        self.alpha = OBSTACLE_HARMLESS_ALPHA
+        self.harmless_timer = OBSTACLE_HARMLESS_TIME
+        self.is_harmless = True
 
     def on_update(self, delta_time):
         self.center_x += self.change_x
@@ -166,6 +176,15 @@ class Obstacle(arcade.Sprite):
             self.kill()
         elif self.top < 0:
             self.kill()
+
+        if self.harmless_timer > 0:
+            self.is_harmless = True
+            self.alpha = min(255 / self.harmless_timer, 255)
+            self.harmless_timer -= delta_time
+            print(self.harmless_timer)
+        else:
+            self.is_harmless = False
+            self.alpha = 255
 
 
 class PlayerShot(arcade.Sprite):
@@ -244,7 +263,7 @@ class MyGame(arcade.Window):
             self.joystick.open()
 
             # Map joysticks functions to local functions
-            self.joystick.on_joybutton_press = self.on_joybutton_press
+            # self.joystick.on_joybutton_press = self.on_joybutton_press
             self.joystick.on_joybutton_release = self.on_joybutton_release
             self.joystick.on_joyaxis_motion = self.on_joyaxis_motion
             self.joystick.on_joyhat_motion = self.on_joyhat_motion
@@ -277,7 +296,7 @@ class MyGame(arcade.Window):
         )
 
         self.current_level = 0
-        self.obstacle_amount = 2
+        self.obstacle_amount = 22
         self.obstacle_speed = 1
 
         self.new_level()
@@ -286,7 +305,7 @@ class MyGame(arcade.Window):
 
         self.obstacle_list = arcade.SpriteList()
 
-        self.current_level += 1
+
         self.obstacle_amount *= 1.1
         self.obstacle_speed *= 1.1
         if self.obstacle_speed > Obstacle.obstacle_max_speed:
@@ -298,7 +317,7 @@ class MyGame(arcade.Window):
         for i in range(int(self.obstacle_amount)):
             # exits game when there is no more levels
             try:
-                self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=self.current_level))
+                self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3)))
             except KeyError:
                 self.game_over()
 
@@ -342,9 +361,10 @@ class MyGame(arcade.Window):
             self.obstacle_list
         )
 
-        if len(obstacle_colliding_with_player) > 0 and self.player_sprite.is_dashing is False:
-            # print("Ouch, You have {}, lives.".format(self.player_lives))
-            self.player_lives -= 1
+        if self.player_sprite.is_dashing is False:
+            for o in obstacle_colliding_with_player:
+                if not o.is_harmless:
+                    self.player_lives -= 1
 
         if self.player_lives <= 0:
             self.game_over()
@@ -379,6 +399,8 @@ class MyGame(arcade.Window):
 
         if len(self.obstacle_list) == 0:
             self.new_level()
+
+
 
 
 
