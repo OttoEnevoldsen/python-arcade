@@ -19,7 +19,7 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 1000
 
 # Variables controlling the player
-PLAYER_LIVES = 10
+PLAYER_LIVES = 5
 PLAYER_SPEED_X = 5
 PLAYER_SPEED_Y = 5
 PLAYER_START_X = SCREEN_WIDTH / 2
@@ -129,7 +129,7 @@ class Obstacle(arcade.Sprite):
     obstacles to dodge
     """
 
-    obstacle_max_speed = 2
+    obstacle_max_speed = 3
 
     types = {
         1: {
@@ -144,7 +144,7 @@ class Obstacle(arcade.Sprite):
                 [-1, 1]
             ],
             "graphics": "images/Meteors/meteorGrey_med2.png",
-            "scaling": random.randint(4, 9)
+            # "scaling": random.randint(3, 8)
         },
         2: {
             "vectors": [
@@ -158,7 +158,7 @@ class Obstacle(arcade.Sprite):
                 [-1, 1]
             ],
             "graphics": "images/Meteors/meteorBrown_med3.png",
-            "scaling": random.randint(4, 9)
+            # "scaling": random.randint(4, 9)
         },
         3: {
             "vectors": [
@@ -172,16 +172,25 @@ class Obstacle(arcade.Sprite):
                 [-1, 1]
             ],
             "graphics": "images/Meteors/meteorGrey_tiny2.png",
-            "scaling": random.randint(4, 9),
+            # "scaling": random.randint(4, 9),
         }
     }
-    def __init__(self, speed, type=1):
+    def __init__(self, speed, type=1, spawn_on_edge=False):
 
-        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * Obstacle.types[type]["scaling"])
+        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * random.randint(4, 9))
 
+        if spawn_on_edge:
+            spawn_positions = [
+                (random.randint(0, SCREEN_WIDTH), SCREEN_HEIGHT), # Top edge
+                (SCREEN_WIDTH, random.randint(0, SCREEN_HEIGHT)), # Right
+                (0, random.randint(0, SCREEN_HEIGHT)), # Left
+                (random.randint(0, SCREEN_WIDTH), 0) #
+            ]
+            self.center_x, self.center_y = random.choice(spawn_positions)
+        else:
+            self.center_x = random.randint(0, SCREEN_WIDTH)
+            self.center_y = random.randint(0, SCREEN_HEIGHT)
 
-        self.center_y = random.randint(0, SCREEN_HEIGHT)
-        self.center_x = random.randint(0, SCREEN_WIDTH)
         self.speed_x, self.speed_y = random.choice(Obstacle.types[type]["vectors"])
         self.change_x *= speed
         self.change_y *= speed
@@ -189,8 +198,13 @@ class Obstacle(arcade.Sprite):
         self.change_angle = random.uniform(-1, 1)
 
         self.alpha = OBSTACLE_HARMLESS_ALPHA
-        self.harmless_timer = OBSTACLE_HARMLESS_TIME
-        self.is_harmless = True
+
+        if spawn_on_edge is False:
+            self.harmless_timer = OBSTACLE_HARMLESS_TIME
+            self.is_harmless = True
+        else:
+            self.harmless_timer = 0
+            self.is_harmless = False
 
     def on_update(self, delta_time):
         self.center_x += self.change_x
@@ -209,7 +223,6 @@ class Obstacle(arcade.Sprite):
             self.is_harmless = True
             self.alpha = min(255 / self.harmless_timer, 255)
             self.harmless_timer -= delta_time
-            print(self.harmless_timer)
         else:
             self.is_harmless = False
             self.alpha = 255
@@ -287,6 +300,7 @@ class MyGame(arcade.Window):
         self.current_level = None
         self.obstacle_amount = None
         self.obstacle_speed = None
+        self.spawn_on_edge = None
 
         # Get list of joysticks
         joysticks = arcade.get_joysticks()
@@ -334,18 +348,19 @@ class MyGame(arcade.Window):
         )
 
         self.current_level = 0
-        self.obstacle_amount = 22
-        self.obstacle_speed = 1
+        self.obstacle_speed = 1.5
+        self.spawn_on_edge = False
+
 
         self.new_level()
 
     def new_level(self):
 
         self.obstacle_list = arcade.SpriteList()
-
+        self.obstacle_amount = 30
 
         self.obstacle_amount *= 1.1
-        self.obstacle_speed *= 1.1
+        self.obstacle_speed *= 1.2
         if self.obstacle_speed > Obstacle.obstacle_max_speed:
             self.obstacle_speed = Obstacle.obstacle_max_speed
 
@@ -355,7 +370,10 @@ class MyGame(arcade.Window):
         for i in range(int(self.obstacle_amount)):
             # exits game when there is no more levels
             try:
-                self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3)))
+                self.obstacle_list.append(Obstacle(speed=self.obstacle_speed,
+                                                   type=random.randint(1, 3),
+                                                   spawn_on_edge=self.spawn_on_edge
+                                                   ))
             except KeyError:
                 self.game_over()
 
@@ -376,11 +394,12 @@ class MyGame(arcade.Window):
         # Draw the player shot
         self.player_shot_list.draw()
 
+        # Draw the obstacles
+        self.obstacle_list.draw()
+
         # Draw the player sprite
         self.player_sprite.draw()
 
-        # Draw the obstacles
-        self.obstacle_list.draw()
 
         # Draw players lives on screen
         arcade.draw_text(
@@ -413,6 +432,9 @@ class MyGame(arcade.Window):
 
         if self.player_sprite.player_lives <= 0:
             self.game_over()
+
+        while len(self.obstacle_list) < self.obstacle_amount:
+            self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
 
         # Calculate player speed based on the keys pressed
         self.player_sprite.change_x = 0
