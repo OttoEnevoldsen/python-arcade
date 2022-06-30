@@ -11,6 +11,7 @@ import arcade
 import random
 
 
+
 SPRITE_SCALING = 0.5
 
 # Set the size of the screen
@@ -18,7 +19,7 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 1000
 
 # Variables controlling the player
-PLAYER_LIVES = 500
+PLAYER_LIVES = 10
 PLAYER_SPEED_X = 5
 PLAYER_SPEED_Y = 5
 PLAYER_START_X = SCREEN_WIDTH / 2
@@ -27,9 +28,12 @@ PLAYER_SHOT_SPEED = 4
 OBSTACLE_SPEED = 3
 DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
-OBSTACLE_HARMLESS_TIME = 2.5
+OBSTACLE_HARMLESS_TIME = 1.5
 OBSTACLE_HARMLESS_ALPHA = 100
 OBSTACLE_HARMLESS_SPEED_FACTOR = 0.3
+
+TAKING_DAMAGE_TIME = 0.75
+LIVES_TAKING_DAMAGE = 1
 
 
 
@@ -45,14 +49,21 @@ class Player(arcade.Sprite):
         Setup new Player object
         """
 
-        # Graphics to use for Player
-        kwargs['filename'] = "images/playerShip1_blue.png"
 
         # How much to scale the graphics
         kwargs['scale'] = SPRITE_SCALING
 
         # Pass arguments to class arcade.Sprite
         super().__init__(**kwargs)
+
+        self.taking_damage_timer = 0
+        self.taking_damage_path = "images/playerShip1_red.png"
+        self.normal_path = "images/playerShip1_blue.png"
+
+        self.texture = arcade.load_texture(self.normal_path)
+
+        self.player_lives = PLAYER_LIVES
+
 
         self.is_dashing = False
         self.dashing_time_left = 0
@@ -67,6 +78,13 @@ class Player(arcade.Sprite):
             self.dashing_time_left = DASHING_TIME
             self.dash_cooldown = DASH_COOLDOWN
 
+    def taking_damage(self):
+        if self.taking_damage_timer == 0:
+            self.taking_damage_timer = TAKING_DAMAGE_TIME
+            self.texture = arcade.load_texture(self.taking_damage_path)
+            self.player_lives -= LIVES_TAKING_DAMAGE
+
+
     def update(self, delta_time):
         """
         Move the sprite
@@ -76,6 +94,14 @@ class Player(arcade.Sprite):
             if self.dashing_time_left <= 0:
                 self.is_dashing = False
                 self.dashing_time_left = 0
+
+        if self.taking_damage_timer > 0:
+            self.taking_damage_timer -= delta_time
+        elif self.taking_damage_timer <0:
+            self.texture = arcade.load_texture(self.normal_path)
+            self.taking_damage_timer = 0
+
+
 
         # Update center_x
         if self.is_dashing:
@@ -97,7 +123,6 @@ class Player(arcade.Sprite):
 
         if not self.is_dashing:
             self.dash_cooldown -= delta_time
-
 
 class Obstacle(arcade.Sprite):
     """
@@ -354,7 +379,7 @@ class MyGame(arcade.Window):
 
         # Draw players lives on screen
         arcade.draw_text(
-            "LIVES: {}".format(self.player_lives),  # Text to show
+            "LIVES: {}".format(self.player_sprite.player_lives),  # Text to show
             10,                  # X position
             SCREEN_HEIGHT - 20,  # Y position
             arcade.color.WHITE   # Color of text
@@ -373,9 +398,9 @@ class MyGame(arcade.Window):
         if self.player_sprite.is_dashing is False:
             for o in obstacle_colliding_with_player:
                 if not o.is_harmless:
-                    self.player_lives -= 1
+                    self.player_sprite.taking_damage()
 
-        if self.player_lives <= 0:
+        if self.player_sprite.player_lives <= 0:
             self.game_over()
 
         # Calculate player speed based on the keys pressed
@@ -409,12 +434,6 @@ class MyGame(arcade.Window):
         if len(self.obstacle_list) == 0:
             self.new_level()
 
-
-
-
-
-
-
     def on_key_press(self, key, modifiers):
         """
         Called whenever a key is pressed.
@@ -447,6 +466,8 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.right_pressed = False
 
+    # def on_joybutton_press(self):
+
     def on_joybutton_release(self, joystick, button_no):
         print("Button released:", button_no)
 
@@ -464,7 +485,6 @@ def main():
     window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
     window.setup()
     arcade.run()
-
 
 if __name__ == "__main__":
     main()
