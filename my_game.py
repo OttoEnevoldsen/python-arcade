@@ -281,14 +281,17 @@ class MyGame(arcade.Window):
         # Call the parent class initializer
         super().__init__(width, height)
 
+        self.level_up_timer = None
+        self.player_score = None
+
         # Variable that will hold a list of shots fired by the player
         self.player_shot_list = None
         self.obstacle_list = None
+        self.number_of_obstacles = None
 
         # Set up the player info
         self.player_sprite = None
         self.player_score = None
-        self.player_lives = None
 
         # Track the current state of what key is pressed
         self.left_pressed = False
@@ -296,11 +299,7 @@ class MyGame(arcade.Window):
         self.up_pressed = False
         self.down_pressed = False
 
-        # level
         self.current_level = None
-        self.obstacle_amount = None
-        self.obstacle_speed = None
-        self.spawn_on_edge = None
 
         # Get list of joysticks
         joysticks = arcade.get_joysticks()
@@ -315,7 +314,7 @@ class MyGame(arcade.Window):
             self.joystick.open()
 
             # Map joysticks functions to local functions
-            # self.joystick.on_joybutton_press = self.on_joybutton_press
+            self.joystick.on_joybutton_press = self.on_joybutton_press
             self.joystick.on_joybutton_release = self.on_joybutton_release
             self.joystick.on_joyaxis_motion = self.on_joyaxis_motion
             self.joystick.on_joyhat_motion = self.on_joyhat_motion
@@ -324,8 +323,7 @@ class MyGame(arcade.Window):
             print("No joysticks found")
             self.joystick = None
 
-
-            #self.joystick.
+            # self.joystick.
         # Set the background color
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -334,9 +332,6 @@ class MyGame(arcade.Window):
 
         # No points when the game starts
         self.player_score = 0
-
-        # No of lives
-        self.player_lives = PLAYER_LIVES
 
         # Sprite lists
         self.player_shot_list = arcade.SpriteList()
@@ -348,40 +343,24 @@ class MyGame(arcade.Window):
         )
 
         self.current_level = 0
-        self.obstacle_speed = 1.5
-        self.spawn_on_edge = False
-
+        self.obstacle_speed = OBSTACLE_SPEED
 
         self.new_level()
 
     def new_level(self):
 
+        self.level_up_timer = 20
+        self.number_of_obstacles = 20
+
         self.obstacle_list = arcade.SpriteList()
-        self.obstacle_amount = 30
+        self.number_of_obstacles += self.current_level
+        self.current_level += 1
 
-        self.obstacle_amount *= 1.1
-        self.obstacle_speed *= 1.2
-        if self.obstacle_speed > Obstacle.obstacle_max_speed:
-            self.obstacle_speed = Obstacle.obstacle_max_speed
+        # Increases obstacle_speed with 10%
+        self.obstacle_speed *= 1.1
 
-        if self.current_level > 3:
-            self.current_level = 1
-
-        for i in range(int(self.obstacle_amount)):
-            # exits game when there is no more levels
-            try:
-                self.obstacle_list.append(Obstacle(speed=self.obstacle_speed,
-                                                   type=random.randint(1, 3),
-                                                   spawn_on_edge=self.spawn_on_edge
-                                                   ))
-            except KeyError:
-                self.game_over()
-
-    def game_over(self):
-        print("Game Over NOOOOOOOB!!")
-        print("Score:", self.player_score)
-        exit(0)
-
+        for i in range(self.number_of_obstacles):
+            self.obstacle_list.append(Obstacle(speed=self.obstacle_speed,type=random.randint(1, 3)))
 
     def on_draw(self):
         """
@@ -391,28 +370,32 @@ class MyGame(arcade.Window):
         # This command has to happen before we start drawing
         arcade.start_render()
 
-        # Draw the player shot
-        self.player_shot_list.draw()
-
         # Draw the obstacles
         self.obstacle_list.draw()
 
         # Draw the player sprite
         self.player_sprite.draw()
 
-
-        # Draw players lives on screen
+        # Draw players score on screen
         arcade.draw_text(
             "LIVES: {}".format(self.player_sprite.player_lives),  # Text to show
-            10,                  # X position
-            SCREEN_HEIGHT - 20,  # Y position
-            arcade.color.WHITE   # Color of text
+            10,  # X position
+            SCREEN_HEIGHT - 20,  # Y positon
+            arcade.color.WHITE  # Color of text
         )
+
         arcade.draw_text(
-            "SCORE: {}".format(int(self.player_score / 10) * 10),  # Text to show
-            10,                  # X position
-            SCREEN_HEIGHT - 40,  # Y position
-            arcade.color.WHITE   # Color of text
+            "score: {}".format(int(self.player_score) * 10),  # Text to show
+            10,  # X position
+            SCREEN_HEIGHT - 40,  # Y positon
+            arcade.color.WHITE  # Color of text
+        )
+
+        arcade.draw_text(
+            "Next level in: {}".format(int(self.level_up_timer)),  # Text to show
+            10,  # X position
+            SCREEN_HEIGHT - 60,  # Y positon
+            arcade.color.WHITE  # Color of text
         )
 
     def on_update(self, delta_time):
@@ -420,25 +403,16 @@ class MyGame(arcade.Window):
         Movement and game logic
         """
 
-        obstacle_colliding_with_player = arcade.check_for_collision_with_list(
-            self.player_sprite,
-            self.obstacle_list
-        )
-
-        if self.player_sprite.is_dashing is False:
-            for o in obstacle_colliding_with_player:
-                if not o.is_harmless:
-                    self.player_sprite.taking_damage()
-
-        if self.player_sprite.player_lives <= 0:
-            self.game_over()
-
-        while len(self.obstacle_list) < self.obstacle_amount:
-            self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
-
         # Calculate player speed based on the keys pressed
         self.player_sprite.change_x = 0
         self.player_sprite.change_y = 0
+
+        obstacles_colliding_with_player = arcade.check_for_collision_with_list(
+            self.player_sprite, self.obstacle_list
+        )
+        for o in obstacles_colliding_with_player:
+            if self.player_sprite.is_dashing is False and not o.is_harmless:
+                self.player_sprite.taking_damage()
 
         # Move player with keyboard
         if self.left_pressed and not self.right_pressed:
@@ -448,10 +422,7 @@ class MyGame(arcade.Window):
         elif self.up_pressed and not self.down_pressed:
             self.player_sprite.change_y = PLAYER_SPEED_Y
         elif self.down_pressed and not self.up_pressed:
-            self.player_sprite.change_y = -PLAYER_SPEED_Y
-
-        self.player_score += delta_time * 100
-
+            self.player_sprite.change_y = - PLAYER_SPEED_Y
 
         # Move player with joystick if present
         if self.joystick:
@@ -460,14 +431,26 @@ class MyGame(arcade.Window):
         # Update player sprite
         self.player_sprite.update(delta_time)
 
-        # Update the player shots
-        self.player_shot_list.update()
+        # add mising obstacles
+        while len(self.obstacle_list) < self.number_of_obstacles:
+            self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
 
+        # Update the player shots
         for o in self.obstacle_list:
             o.on_update(delta_time)
 
-        if len(self.obstacle_list) == 0:
+        self.level_up_timer -= delta_time
+
+        if self.level_up_timer <= 0:
             self.new_level()
+
+        if self.obstacle_speed > Obstacle.obstacle_max_speed:
+            self.obstacle_speed = Obstacle.obstacle_max_speed
+
+        self.player_score += int((10. * delta_time) * 10)
+        if self.player_sprite.player_lives < 1:
+            print("your final score is", int(self.player_score * 10))
+            exit(0)
 
     def on_key_press(self, key, modifiers):
         """
@@ -487,6 +470,8 @@ class MyGame(arcade.Window):
         if key == DASHING_KEY:
             self.player_sprite.dash()
 
+            # self.player_shot_list.append(new_shot)
+
     def on_key_release(self, key, modifiers):
         """
         Called whenever a key is released.
@@ -501,7 +486,10 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.right_pressed = False
 
-    # def on_joybutton_press(self):
+    def on_joybutton_press(self, joystick, button_no):
+        print("Button pressed:", button_no)
+        # Press the fire key
+        self.on_key_press(DASHING_KEY, [])
 
     def on_joybutton_release(self, joystick, button_no):
         print("Button released:", button_no)
@@ -512,6 +500,7 @@ class MyGame(arcade.Window):
     def on_joyhat_motion(self, joystick, hat_x, hat_y):
         print("Joystick hat ({}, {})".format(hat_x, hat_y))
 
+
 def main():
     """
     Main method
@@ -520,6 +509,7 @@ def main():
     window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
     window.setup()
     arcade.run()
+
 
 if __name__ == "__main__":
     main()
