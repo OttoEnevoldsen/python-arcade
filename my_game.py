@@ -28,7 +28,7 @@ PLAYER_SHOT_SPEED = 4
 OBSTACLE_SPEED = 3
 DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
-OBSTACLE_HARMLESS_TIME = 1.5
+OBSTACLE_HARMLESS_TIME = 2.5
 OBSTACLE_HARMLESS_ALPHA = 100
 OBSTACLE_HARMLESS_SPEED_FACTOR = 0.3
 
@@ -144,7 +144,7 @@ class Obstacle(arcade.Sprite):
                 [-1, 1]
             ],
             "graphics": "images/Meteors/meteorGrey_med2.png",
-            "scaling": random.randint(3, 8)
+            "scaling": random.randint(4, 9)
         },
         2: {
             "vectors": [
@@ -158,7 +158,7 @@ class Obstacle(arcade.Sprite):
                 [-1, 1]
             ],
             "graphics": "images/Meteors/meteorBrown_med3.png",
-            "scaling": random.randint(3, 8)
+            "scaling": random.randint(4, 9)
         },
         3: {
             "vectors": [
@@ -172,7 +172,7 @@ class Obstacle(arcade.Sprite):
                 [-1, 1]
             ],
             "graphics": "images/Meteors/meteorGrey_tiny2.png",
-            "scaling": random.randint(3, 8),
+            "scaling": random.randint(4, 9),
         }
     }
     def __init__(self, speed, type=1):
@@ -185,6 +185,8 @@ class Obstacle(arcade.Sprite):
         self.speed_x, self.speed_y = random.choice(Obstacle.types[type]["vectors"])
         self.change_x *= speed
         self.change_y *= speed
+
+        self.change_angle = random.uniform(-1, 1)
 
         self.alpha = OBSTACLE_HARMLESS_ALPHA
         self.harmless_timer = OBSTACLE_HARMLESS_TIME
@@ -214,10 +216,12 @@ class Obstacle(arcade.Sprite):
 
         if self.is_harmless:
             self.change_x = self.speed_x * OBSTACLE_HARMLESS_SPEED_FACTOR
-            self.change_y = self.speed_x * OBSTACLE_HARMLESS_SPEED_FACTOR
+            self.change_y = self.speed_y * OBSTACLE_HARMLESS_SPEED_FACTOR
+            self.angle += self.change_angle * OBSTACLE_HARMLESS_SPEED_FACTOR
         else:
             self.change_x = self.speed_x
             self.change_y = self.speed_y
+            self.angle += self.change_angle
 
 
 
@@ -357,6 +361,7 @@ class MyGame(arcade.Window):
 
     def game_over(self):
         print("Game Over NOOOOOOOB!!")
+        print("Score:", self.player_score)
         exit(0)
 
 
@@ -382,6 +387,12 @@ class MyGame(arcade.Window):
             "LIVES: {}".format(self.player_sprite.player_lives),  # Text to show
             10,                  # X position
             SCREEN_HEIGHT - 20,  # Y position
+            arcade.color.WHITE   # Color of text
+        )
+        arcade.draw_text(
+            "SCORE: {}".format(int(self.player_score / 10) * 10),  # Text to show
+            10,                  # X position
+            SCREEN_HEIGHT - 40,  # Y position
             arcade.color.WHITE   # Color of text
         )
 
@@ -416,6 +427,8 @@ class MyGame(arcade.Window):
             self.player_sprite.change_y = PLAYER_SPEED_Y
         elif self.down_pressed and not self.up_pressed:
             self.player_sprite.change_y = -PLAYER_SPEED_Y
+
+        self.player_score += delta_time * 100
 
 
         # Move player with joystick if present
