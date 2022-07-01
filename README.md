@@ -24,3 +24,5 @@ flying trough space and dodging meteors.
 # Game ideas
 * meteors explode when hit
 * add physics for movement
+* sound effects
+* 

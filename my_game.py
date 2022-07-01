@@ -289,6 +289,8 @@ class MyGame(arcade.Window):
         # Call the parent class initializer
         super().__init__(width, height)
 
+        print(self.get_viewport())
+
         self.level_timer = None
         self.player_score = None
 
@@ -435,19 +437,39 @@ class MyGame(arcade.Window):
         # Move player with keyboard
         if self.left_pressed and not self.right_pressed:
             self.player_sprite.change_x = -PLAYER_SPEED_X
-            self.player_sprite.angle = 90
 
         if self.right_pressed and not self.left_pressed:
             self.player_sprite.change_x = PLAYER_SPEED_X
-            self.player_sprite.angle = -90
 
         if self.up_pressed and not self.down_pressed:
             self.player_sprite.change_y = PLAYER_SPEED_Y
-            self.player_sprite.angle = 0
 
         if self.down_pressed and not self.up_pressed:
             self.player_sprite.change_y = - PLAYER_SPEED_Y
+
+        if self.player_sprite.change_x > 0 and self.player_sprite.change_y == 0:
+            self.player_sprite.angle = -90
+
+        if self.player_sprite.change_x > 0 and self.player_sprite.change_y > 0:
+            self.player_sprite.angle = -45
+
+        if self.player_sprite.change_x == 0 and self.player_sprite.change_y > 0:
+            self.player_sprite.angle = 0
+
+        if self.player_sprite.change_x < 0 and self.player_sprite.change_y == 0:
+            self.player_sprite.angle = 90
+
+        if self.player_sprite.change_x == 0 and self.player_sprite.change_y < 0:
             self.player_sprite.angle = 180
+
+        if self.player_sprite.change_x < 0 and self.player_sprite.change_y < 0:
+            self.player_sprite.angle = 135
+
+        if self.player_sprite.change_x < 0 and self.player_sprite.change_y > 0:
+            self.player_sprite.angle = 45
+
+        if self.player_sprite.change_x > 0 and self.player_sprite.change_y < 0:
+            self.player_sprite.angle = -135
 
         # Move player with joystick if present
         if self.joystick:
