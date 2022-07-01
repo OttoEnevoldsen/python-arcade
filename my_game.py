@@ -12,7 +12,7 @@ import random
 
 
 
-SPRITE_SCALING = 0.5
+SPRITE_SCALING = 0.3
 
 # Set the size of the screen
 SCREEN_WIDTH = 1000
@@ -25,7 +25,7 @@ PLAYER_SPEED_Y = 5
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
-OBSTACLE_SPEED = 3
+OBSTACLE_SPEED = 5
 DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
 OBSTACLE_HARMLESS_TIME = 2.5
@@ -358,18 +358,18 @@ class MyGame(arcade.Window):
     def new_level(self):
 
         self.level_timer = LEVEL_TIME
-        self.number_of_obstacles = 32
+        self.number_of_obstacles = 40
 
 
         self.obstacle_list = arcade.SpriteList()
         self.number_of_obstacles += self.current_level
         self.current_level += 1
 
-        # Increases obstacle_speed with 10%
-        self.obstacle_speed *= 1.2
+        # Increases obstacle_speed with 50%
+        self.obstacle_speed *= 1.5
 
         for i in range(self.number_of_obstacles):
-            self.obstacle_list.append(Obstacle(speed=self.obstacle_speed,type=random.randint(1, 3)))
+            self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3)))
 
     def on_draw(self):
         """
