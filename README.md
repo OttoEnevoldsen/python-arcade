@@ -20,3 +20,7 @@ flying trough space and dodging meteors.
 1. python3 -mvenv .venv
 2. source .venv/bin/activate 
 3. pip3 install -r requirements.txt
+
+# Game ideas
+* meteors explode when hit
+* add physics for movement
