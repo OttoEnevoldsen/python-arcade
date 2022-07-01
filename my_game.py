@@ -353,12 +353,14 @@ class MyGame(arcade.Window):
         self.current_level = 0
         self.obstacle_speed = OBSTACLE_SPEED
 
+        self.number_of_obstacles = 40
+
         self.new_level()
+
 
     def new_level(self):
 
         self.level_timer = LEVEL_TIME
-        self.number_of_obstacles = 40
 
 
         self.obstacle_list = arcade.SpriteList()
@@ -435,21 +437,30 @@ class MyGame(arcade.Window):
             self.player_sprite.change_x = -PLAYER_SPEED_X
             self.player_sprite.angle = 90
 
-        elif self.right_pressed and not self.left_pressed:
+        if self.right_pressed and not self.left_pressed:
             self.player_sprite.change_x = PLAYER_SPEED_X
             self.player_sprite.angle = -90
 
-        elif self.up_pressed and not self.down_pressed:
+        if self.up_pressed and not self.down_pressed:
             self.player_sprite.change_y = PLAYER_SPEED_Y
             self.player_sprite.angle = 0
 
-        elif self.down_pressed and not self.up_pressed:
+        if self.down_pressed and not self.up_pressed:
             self.player_sprite.change_y = - PLAYER_SPEED_Y
             self.player_sprite.angle = 180
 
         # Move player with joystick if present
         if self.joystick:
             self.player_sprite.change_x = round(self.joystick.x) * PLAYER_SPEED_X
+            self.player_sprite.change_y = round(self.joystick.y) * PLAYER_SPEED_Y * -1
+            if round(self.joystick.x) == 1:
+                self.player_sprite.angle = -90
+            elif round(self.joystick.x) == -1:
+                self.player_sprite.angle = 90
+            elif round(self.joystick.y) == 1:
+                self.player_sprite.angle = 180
+            elif round(self.joystick.y) == -1:
+                self.player_sprite.angle = 0
 
         # Update player sprite
         self.player_sprite.update(delta_time)
@@ -510,18 +521,20 @@ class MyGame(arcade.Window):
             self.right_pressed = False
 
     def on_joybutton_press(self, joystick, button_no):
-        print("Button pressed:", button_no)
+        # print("Button pressed:", button_no)
         # Press the fire key
         self.on_key_press(DASHING_KEY, [])
-
+        pass
     def on_joybutton_release(self, joystick, button_no):
-        print("Button released:", button_no)
-
+        # print("Button released:", button_no)
+        pass
     def on_joyaxis_motion(self, joystick, axis, value):
         print("Joystick axis {}, value {}".format(axis, value))
 
+
     def on_joyhat_motion(self, joystick, hat_x, hat_y):
-        print("Joystick hat ({}, {})".format(hat_x, hat_y))
+        # print("Joystick hat ({}, {})".format(hat_x, hat_y))
+        pass
 
 
 def main():
