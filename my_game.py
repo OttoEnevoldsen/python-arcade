@@ -197,8 +197,11 @@ class Obstacle(arcade.Sprite):
             self.center_y = random.randint(0, SCREEN_HEIGHT)
 
         self.speed_x, self.speed_y = random.choice(Obstacle.types[type]["vectors"])
-        self.change_x *= speed
-        self.change_y *= speed
+
+        # random speed noise for obstacles
+        self.speed_noise = random.uniform(0.9, 1.1)
+        self.change_x *= speed * self.speed_noise
+        self.change_y *= speed * self.speed_noise
 
         self.change_angle = random.uniform(-1, 1)
 
