@@ -401,6 +401,13 @@ class MyGame(arcade.Window):
             arcade.color.WHITE  # Color of text
         )
 
+        arcade.draw_text(
+            "Level: {}".format(int(self.current_level)),  # Text to show
+            10,  # X position
+            SCREEN_HEIGHT - 80,  # Y positon
+            arcade.color.WHITE  # Color of text
+        )
+
     def on_update(self, delta_time):
         """
         Movement and game logic
