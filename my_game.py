@@ -36,6 +36,7 @@ LEVEL_TIME = 20
 
 TAKING_DAMAGE_TIME = 0.75
 LIVES_TAKING_DAMAGE = 1
+DASH_ALPHA = 150
 
 
 
@@ -79,6 +80,7 @@ class Player(arcade.Sprite):
             self.is_dashing = True
             self.dashing_time_left = DASHING_TIME
             self.dash_cooldown = DASH_COOLDOWN
+            self.alpha = DASH_ALPHA
 
     def taking_damage(self):
         if self.taking_damage_timer == 0:
@@ -96,6 +98,7 @@ class Player(arcade.Sprite):
             if self.dashing_time_left <= 0:
                 self.is_dashing = False
                 self.dashing_time_left = 0
+                self.alpha = 255
 
         if self.taking_damage_timer > 0:
             self.taking_damage_timer -= delta_time
