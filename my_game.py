@@ -31,6 +31,8 @@ DASH_COOLDOWN = 1
 OBSTACLE_HARMLESS_TIME = 2.5
 OBSTACLE_HARMLESS_ALPHA = 100
 OBSTACLE_HARMLESS_SPEED_FACTOR = 0.3
+# length of a level in seconds
+LEVEL_TIME = 20
 
 TAKING_DAMAGE_TIME = 0.75
 LIVES_TAKING_DAMAGE = 1
@@ -97,7 +99,7 @@ class Player(arcade.Sprite):
 
         if self.taking_damage_timer > 0:
             self.taking_damage_timer -= delta_time
-        elif self.taking_damage_timer <0:
+        elif self.taking_damage_timer <= 0:
             self.texture = arcade.load_texture(self.normal_path)
             self.taking_damage_timer = 0
 
@@ -281,7 +283,7 @@ class MyGame(arcade.Window):
         # Call the parent class initializer
         super().__init__(width, height)
 
-        self.level_up_timer = None
+        self.level_timer = None
         self.player_score = None
 
         # Variable that will hold a list of shots fired by the player
@@ -349,15 +351,16 @@ class MyGame(arcade.Window):
 
     def new_level(self):
 
-        self.level_up_timer = 20
-        self.number_of_obstacles = 20
+        self.level_timer = LEVEL_TIME
+        self.number_of_obstacles = 32
+
 
         self.obstacle_list = arcade.SpriteList()
         self.number_of_obstacles += self.current_level
         self.current_level += 1
 
         # Increases obstacle_speed with 10%
-        self.obstacle_speed *= 1.1
+        self.obstacle_speed *= 1.2
 
         for i in range(self.number_of_obstacles):
             self.obstacle_list.append(Obstacle(speed=self.obstacle_speed,type=random.randint(1, 3)))
@@ -392,7 +395,7 @@ class MyGame(arcade.Window):
         )
 
         arcade.draw_text(
-            "Next level in: {}".format(int(self.level_up_timer)),  # Text to show
+            "Next level in: {}".format(int(self.level_timer)),  # Text to show
             10,  # X position
             SCREEN_HEIGHT - 60,  # Y positon
             arcade.color.WHITE  # Color of text
@@ -417,12 +420,19 @@ class MyGame(arcade.Window):
         # Move player with keyboard
         if self.left_pressed and not self.right_pressed:
             self.player_sprite.change_x = -PLAYER_SPEED_X
+            self.player_sprite.angle = 90
+
         elif self.right_pressed and not self.left_pressed:
             self.player_sprite.change_x = PLAYER_SPEED_X
+            self.player_sprite.angle = -90
+
         elif self.up_pressed and not self.down_pressed:
             self.player_sprite.change_y = PLAYER_SPEED_Y
+            self.player_sprite.angle = 0
+
         elif self.down_pressed and not self.up_pressed:
             self.player_sprite.change_y = - PLAYER_SPEED_Y
+            self.player_sprite.angle = 180
 
         # Move player with joystick if present
         if self.joystick:
@@ -431,7 +441,7 @@ class MyGame(arcade.Window):
         # Update player sprite
         self.player_sprite.update(delta_time)
 
-        # add mising obstacles
+        # add missing obstacles
         while len(self.obstacle_list) < self.number_of_obstacles:
             self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
 
@@ -439,9 +449,9 @@ class MyGame(arcade.Window):
         for o in self.obstacle_list:
             o.on_update(delta_time)
 
-        self.level_up_timer -= delta_time
+        self.level_timer -= delta_time
 
-        if self.level_up_timer <= 0:
+        if self.level_timer <= 0:
             self.new_level()
 
         if self.obstacle_speed > Obstacle.obstacle_max_speed:
