@@ -12,10 +12,10 @@ import random
 
 
 
-SPRITE_SCALING = 0.2
+SPRITE_SCALING = 0.4
 
 # Set the size of the screen
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
 
 # Variables controlling the player
@@ -25,7 +25,7 @@ PLAYER_SPEED_Y = 5
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
-OBSTACLE_SPEED = 5
+OBSTACLE_SPEED = 6
 DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
 OBSTACLE_HARMLESS_TIME = 2.5
@@ -207,7 +207,7 @@ class Obstacle(arcade.Sprite):
         self.speed_x, self.speed_y = random.choice(Obstacle.types[type]["vectors"])
 
         # random speed noise for obstacles
-        self.speed_noise = random.uniform(0.9, 1.1)
+        self.speed_noise = random.uniform(0.6, 1.5)
         self.change_x *= speed * self.speed_noise
         self.change_y *= speed * self.speed_noise
 
