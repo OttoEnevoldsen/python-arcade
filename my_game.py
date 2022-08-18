@@ -12,11 +12,11 @@ import random
 
 
 
-SPRITE_SCALING = 0.3
+SPRITE_SCALING = 0.2
 
 # Set the size of the screen
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 1000
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 800
 
 # Variables controlling the player
 PLAYER_LIVES = 5
@@ -67,6 +67,7 @@ class Player(arcade.Sprite):
 
         self.player_lives = PLAYER_LIVES
 
+        self.wanted_angle = 0
 
         self.is_dashing = False
         self.dashing_time_left = 0
@@ -106,7 +107,14 @@ class Player(arcade.Sprite):
             self.texture = arcade.load_texture(self.normal_path)
             self.taking_damage_timer = 0
 
-
+        d = self.angle - self.wanted_angle
+        self.angle -= d / 10
+        #if self.wanted_angle < 0:
+        #    if self.angle > self.wanted_angle:
+        #        self.angle -= delta_time
+        #else:
+        #    if self.angle < self.wanted_angle:
+        #        self.angle += delta_time
 
         # Update center_x
         if self.is_dashing:
@@ -355,7 +363,7 @@ class MyGame(arcade.Window):
         self.current_level = 0
         self.obstacle_speed = OBSTACLE_SPEED
 
-        self.number_of_obstacles = 40
+        self.number_of_obstacles = 65
 
         self.new_level()
 
@@ -448,28 +456,28 @@ class MyGame(arcade.Window):
             self.player_sprite.change_y = - PLAYER_SPEED_Y
 
         if self.player_sprite.change_x > 0 and self.player_sprite.change_y == 0:
-            self.player_sprite.angle = -90
+            self.player_sprite.wanted_angle = self.player_sprite.angle - 90 - self.player_sprite.angle
 
         if self.player_sprite.change_x > 0 and self.player_sprite.change_y > 0:
-            self.player_sprite.angle = -45
+            self.player_sprite.wanted_angle = self.player_sprite.angle - 45 - self.player_sprite.angle
 
         if self.player_sprite.change_x == 0 and self.player_sprite.change_y > 0:
-            self.player_sprite.angle = 0
+            self.player_sprite.wanted_angle = self.player_sprite.angle - 0 - self.player_sprite.angle
 
         if self.player_sprite.change_x < 0 and self.player_sprite.change_y == 0:
-            self.player_sprite.angle = 90
+            self.player_sprite.wanted_angle = self.player_sprite.angle - -90 - self.player_sprite.angle
 
         if self.player_sprite.change_x == 0 and self.player_sprite.change_y < 0:
-            self.player_sprite.angle = 180
+            self.player_sprite.wanted_angle = self.player_sprite.angle - -180 - self.player_sprite.angle
 
         if self.player_sprite.change_x < 0 and self.player_sprite.change_y < 0:
-            self.player_sprite.angle = 135
+            self.player_sprite.wanted_angle = self.player_sprite.angle - -225 - self.player_sprite.angle
 
         if self.player_sprite.change_x < 0 and self.player_sprite.change_y > 0:
-            self.player_sprite.angle = 45
+            self.player_sprite.wanted_angle = 45
 
         if self.player_sprite.change_x > 0 and self.player_sprite.change_y < 0:
-            self.player_sprite.angle = -135
+            self.player_sprite.wanted_angle = -135
 
         # Move player with joystick if present
         if self.joystick:
