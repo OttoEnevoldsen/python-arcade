@@ -10,8 +10,6 @@ Artwork from https://kenney.nl/assets/space-shooter-redux
 import arcade
 import random
 
-
-
 SPRITE_SCALING = 0.4
 
 # Set the size of the screen
@@ -36,9 +34,7 @@ LEVEL_TIME = 20
 
 TAKING_DAMAGE_TIME = 0.75
 LIVES_TAKING_DAMAGE = 1
-DASH_ALPHA = 150
-
-
+DASH_ALPHA = 100
 
 DASHING_KEY = arcade.key.SPACE
 
@@ -51,7 +47,6 @@ class Player(arcade.Sprite):
         """
         Setup new Player object
         """
-
 
         # How much to scale the graphics
         kwargs['scale'] = SPRITE_SCALING
@@ -89,7 +84,6 @@ class Player(arcade.Sprite):
             self.texture = arcade.load_texture(self.taking_damage_path)
             self.player_lives -= LIVES_TAKING_DAMAGE
 
-
     def update(self, delta_time):
         """
         Move the sprite
@@ -109,10 +103,10 @@ class Player(arcade.Sprite):
 
         d = self.angle - self.wanted_angle
         self.angle -= d / 10
-        #if self.wanted_angle < 0:
+        # if self.wanted_angle < 0:
         #    if self.angle > self.wanted_angle:
         #        self.angle -= delta_time
-        #else:
+        # else:
         #    if self.angle < self.wanted_angle:
         #        self.angle += delta_time
 
@@ -137,20 +131,21 @@ class Player(arcade.Sprite):
         if not self.is_dashing:
             self.dash_cooldown -= delta_time
 
+
 class Obstacle(arcade.Sprite):
     """
     obstacles to dodge
     """
 
-    obstacle_max_speed = 3
+    obstacle_max_speed = 2
 
     types = {
         1: {
             "vectors": [
-                [1, 0], # right
+                [1, 0],  # right
                 [-1, 0],  # left
-                [0, 1], # up
-                [0, -1], # down
+                [0, 1],  # up
+                [0, -1],  # down
                 [1, 1],
                 [-1, -1],
                 [1, -1],
@@ -188,16 +183,17 @@ class Obstacle(arcade.Sprite):
             # "scaling": random.randint(4, 9),
         }
     }
+
     def __init__(self, speed, type=1, spawn_on_edge=False):
 
-        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * random.randint(4, 9))
+        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * random.randint(5, 8))
 
         if spawn_on_edge:
             spawn_positions = [
-                (random.randint(0, SCREEN_WIDTH), SCREEN_HEIGHT), # Top edge
-                (SCREEN_WIDTH, random.randint(0, SCREEN_HEIGHT)), # Right
-                (0, random.randint(0, SCREEN_HEIGHT)), # Left
-                (random.randint(0, SCREEN_WIDTH), 0) #
+                (random.randint(0, SCREEN_WIDTH), SCREEN_HEIGHT),  # Top edge
+                (SCREEN_WIDTH, random.randint(0, SCREEN_HEIGHT)),  # Right
+                (0, random.randint(0, SCREEN_HEIGHT)),  # Left
+                (random.randint(0, SCREEN_WIDTH), 0)  #
             ]
             self.center_x, self.center_y = random.choice(spawn_positions)
         else:
@@ -251,7 +247,6 @@ class Obstacle(arcade.Sprite):
             self.change_x = self.speed_x
             self.change_y = self.speed_y
             self.angle += self.change_angle
-
 
 
 class PlayerShot(arcade.Sprite):
@@ -355,7 +350,7 @@ class MyGame(arcade.Window):
 
         self.mode = "INTRO"
 
-        #if self.mode == "IN_GAME":
+        # if self.mode == "IN_GAME":
 
         # Sprite lists
         self.player_shot_list = arcade.SpriteList()
@@ -369,17 +364,13 @@ class MyGame(arcade.Window):
         self.current_level = 0
         self.obstacle_speed = OBSTACLE_SPEED
 
-        self.number_of_obstacles = 65
+        self.number_of_obstacles = 50
 
         self.new_level()
-
-
-
 
     def new_level(self):
 
         self.level_timer = LEVEL_TIME
-
 
         self.obstacle_list = arcade.SpriteList()
         self.number_of_obstacles += self.current_level
@@ -445,7 +436,6 @@ class MyGame(arcade.Window):
                 arcade.color.PINK,  # Color of text
                 40,
             )
-
 
     def on_update(self, delta_time):
         """
@@ -520,7 +510,8 @@ class MyGame(arcade.Window):
 
             # add missing obstacles
             while len(self.obstacle_list) < self.number_of_obstacles:
-                self.obstacle_list.append(Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
+                self.obstacle_list.append(
+                    Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
 
             # Update the player shots
             for o in self.obstacle_list:
@@ -541,7 +532,6 @@ class MyGame(arcade.Window):
 
         elif self.mode == "INTRO":
             pass
-
 
     def on_key_press(self, key, modifiers):
         """
@@ -587,12 +577,13 @@ class MyGame(arcade.Window):
         # Press the fire key
         self.on_key_press(DASHING_KEY, [])
         pass
+
     def on_joybutton_release(self, joystick, button_no):
         # print("Button released:", button_no)
         pass
+
     def on_joyaxis_motion(self, joystick, axis, value):
         print("Joystick axis {}, value {}".format(axis, value))
-
 
     def on_joyhat_motion(self, joystick, hat_x, hat_y):
         # print("Joystick hat ({}, {})".format(hat_x, hat_y))
