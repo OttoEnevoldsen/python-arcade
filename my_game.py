@@ -434,8 +434,16 @@ class MyGame(arcade.Window):
                 SCREEN_WIDTH / 2 - 250,  # X position
                 SCREEN_HEIGHT / 2,  # Y positon
                 arcade.color.PINK,  # Color of text
-                40,
+                40
             )
+            if self.player_score > 0:
+                arcade.draw_text(
+                    "final score: {}".format(int(self.player_score) * 10),  # Text to show
+                    SCREEN_WIDTH / 2 - 200,  # X position
+                    SCREEN_HEIGHT / 2 - 60,  # Y positon
+                    arcade.color.WHITE,  # Color of text
+                    30
+                )
 
     def on_update(self, delta_time):
         """
@@ -527,11 +535,10 @@ class MyGame(arcade.Window):
 
             self.player_score += int((10. * delta_time) * 10)
             if self.player_sprite.player_lives < 1:
-                print("your final score is", int(self.player_score * 10))
-                exit(0)
+                self.mode = "INTRO"
 
         elif self.mode == "INTRO":
-            pass
+            self.player_sprite.player_lives = PLAYER_LIVES
 
     def on_key_press(self, key, modifiers):
         """
@@ -554,6 +561,7 @@ class MyGame(arcade.Window):
 
         elif self.mode == "INTRO":
             if key == arcade.key.SPACE:
+                self.setup()
                 self.mode = "IN_GAME"
 
             # self.player_shot_list.append(new_shot)
