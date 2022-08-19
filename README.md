@@ -25,4 +25,3 @@ flying trough space and dodging meteors.
 * meteors explode when hit
 * add physics for movement
 * sound effects
-* 
