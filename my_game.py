@@ -311,6 +311,7 @@ class MyGame(arcade.Window):
         self.right_pressed = False
         self.up_pressed = False
         self.down_pressed = False
+        self.kill_button_pressed = False
 
         self.current_level = None
 
@@ -426,23 +427,45 @@ class MyGame(arcade.Window):
                 SCREEN_HEIGHT - 80,  # Y positon
                 arcade.color.WHITE  # Color of text
             )
-
         elif self.mode == "INTRO":
 
-            arcade.draw_text(
-                "press space to start!",  # Text to show
-                SCREEN_WIDTH / 2 - 250,  # X position
-                SCREEN_HEIGHT / 2,  # Y positon
-                arcade.color.PINK,  # Color of text
-                40
-            )
-            if self.player_score > 0:
+            if self.player_score <= 0:
+                arcade.draw_text(
+                    "press space to start!",  # Text to show
+                    SCREEN_WIDTH / 2 - 230,  # X position
+                    SCREEN_HEIGHT / 2,  # Y positon
+                    arcade.color.PINK,  # Color of text
+                    40
+                )
+
+            elif self.player_score > 0:
+
+                self.obstacle_list.alpha = 64
+
+                self.obstacle_list.draw()
+
                 arcade.draw_text(
                     "final score: {}".format(int(self.player_score) * 10),  # Text to show
-                    SCREEN_WIDTH / 2 - 200,  # X position
+                    SCREEN_WIDTH / 2 - 150,  # X position
                     SCREEN_HEIGHT / 2 - 60,  # Y positon
-                    arcade.color.WHITE,  # Color of text
+                    arcade.color.PINK,  # Color of text
                     30
+                )
+
+                arcade.draw_text(
+                    "u ded!",  # Text to show
+                    SCREEN_WIDTH / 2 - 120,  # X position
+                    SCREEN_HEIGHT / 2 + 85,  # Y positon
+                    arcade.color.PINK,  # Color of text
+                    70
+                )
+
+                arcade.draw_text(
+                    "press space to restart!",  # Text to show
+                    SCREEN_WIDTH / 2 - 230,  # X position
+                    SCREEN_HEIGHT / 2,  # Y positon
+                    arcade.color.PINK,  # Color of text
+                    40
                 )
 
     def on_update(self, delta_time):
@@ -500,6 +523,9 @@ class MyGame(arcade.Window):
             if self.player_sprite.change_x > 0 and self.player_sprite.change_y < 0:
                 self.player_sprite.wanted_angle = -135
 
+            #if self.kill_button_pressed == True:
+                # self.player_sprite.player_lives = 0
+
             # Move player with joystick if present
             if self.joystick:
                 self.player_sprite.change_x = round(self.joystick.x) * PLAYER_SPEED_X
@@ -545,6 +571,7 @@ class MyGame(arcade.Window):
         Called whenever a key is pressed.
         """
 
+
         # Track state of arrow keys
         if key == arcade.key.UP:
             self.up_pressed = True
@@ -555,6 +582,9 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
 
+        # if key == arcade.key.Q:
+            # self.kill_button_pressed = True
+
         if self.mode == "IN_GAME":
             if key == DASHING_KEY:
                 self.player_sprite.dash()
@@ -563,6 +593,7 @@ class MyGame(arcade.Window):
             if key == arcade.key.SPACE:
                 self.setup()
                 self.mode = "IN_GAME"
+
 
             # self.player_shot_list.append(new_shot)
 
@@ -579,6 +610,9 @@ class MyGame(arcade.Window):
             self.left_pressed = False
         elif key == arcade.key.RIGHT:
             self.right_pressed = False
+
+        # if key == arcade.key.Q:
+            # self.kill_button_pressed = False
 
     def on_joybutton_press(self, joystick, button_no):
         # print("Button pressed:", button_no)
