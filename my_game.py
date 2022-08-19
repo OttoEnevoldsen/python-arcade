@@ -368,6 +368,18 @@ class MyGame(arcade.Window):
         self.number_of_obstacles = 50
 
         self.new_level()
+    """
+    def fps_test(self, delta_time):
+
+        self.fps = 0
+        self.timer = 1
+
+        while self.timer > 0:
+            self.timer -= delta_time
+            self.fps += 1
+
+        print(self.fps)
+    """
 
     def new_level(self):
 
@@ -474,6 +486,8 @@ class MyGame(arcade.Window):
         """
 
         if self.mode == "IN_GAME":
+
+            # self.fps_test(delta_time)
 
             # Calculate player speed based on the keys pressed
             self.player_sprite.change_x = 0
