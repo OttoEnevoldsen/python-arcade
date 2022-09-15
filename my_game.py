@@ -10,7 +10,7 @@ Artwork from https://kenney.nl/assets/space-shooter-redux
 import arcade
 import random
 
-SPRITE_SCALING = 0.4
+SPRITE_SCALING = 0.3
 
 # Set the size of the screen
 SCREEN_WIDTH = 1000
@@ -26,11 +26,11 @@ PLAYER_SHOT_SPEED = 4
 OBSTACLE_SPEED = 6
 DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
-OBSTACLE_HARMLESS_TIME = 2.5
+OBSTACLE_HARMLESS_TIME = 2.2
 OBSTACLE_HARMLESS_ALPHA = 100
 OBSTACLE_HARMLESS_SPEED_FACTOR = 0.3
 # length of a level in seconds
-LEVEL_TIME = 20
+LEVEL_TIME = 15
 
 TAKING_DAMAGE_TIME = 0.75
 LIVES_TAKING_DAMAGE = 1
@@ -186,7 +186,7 @@ class Obstacle(arcade.Sprite):
 
     def __init__(self, speed, type=1, spawn_on_edge=False):
 
-        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * random.randint(5, 8))
+        super().__init__(Obstacle.types[type]["graphics"], SPRITE_SCALING * random.randint(5, 10))
 
         if spawn_on_edge:
             spawn_positions = [
@@ -207,7 +207,7 @@ class Obstacle(arcade.Sprite):
         self.change_x *= speed * self.speed_noise
         self.change_y *= speed * self.speed_noise
 
-        self.change_angle = random.uniform(-1, 1)
+        self.change_angle = random.uniform(-2, 2)
 
         self.alpha = OBSTACLE_HARMLESS_ALPHA
 
@@ -306,7 +306,7 @@ class MyGame(arcade.Window):
         self.player_sprite = None
         self.player_score = None
 
-        # Track the current state of what key is pressed
+        # Track the current mode of what key is pressed
         self.left_pressed = False
         self.right_pressed = False
         self.up_pressed = False
@@ -349,7 +349,7 @@ class MyGame(arcade.Window):
         # No points when the game starts
         self.player_score = 0
 
-        self.mode = "INTRO"
+        self.set_mode("INTRO")
 
         # if self.mode == "IN_GAME":
 
@@ -365,21 +365,25 @@ class MyGame(arcade.Window):
         self.current_level = 0
         self.obstacle_speed = OBSTACLE_SPEED
 
-        self.number_of_obstacles = 50
+        self.number_of_obstacles = 80
 
         self.new_level()
-    """
-    def fps_test(self, delta_time):
 
-        self.fps = 0
-        self.timer = 1
+    def set_mode(self, mode):
+        
+        if self.mode == mode:
+            return
 
-        while self.timer > 0:
-            self.timer -= delta_time
-            self.fps += 1
+        if mode == "IN_GAME":
+            self.setup()
 
-        print(self.fps)
-    """
+        if mode == "INTRO":
+            pass
+
+        if mode == "GAME_OVER":
+            self.obstacle_list.alpha = 100
+
+        self.mode = mode
 
     def new_level(self):
 
@@ -404,6 +408,8 @@ class MyGame(arcade.Window):
         arcade.start_render()
 
         if self.mode == "IN_GAME":
+
+            self.set_mode(self.mode)
 
             # Draw the obstacles
             self.obstacle_list.draw()
@@ -439,46 +445,50 @@ class MyGame(arcade.Window):
                 SCREEN_HEIGHT - 80,  # Y positon
                 arcade.color.WHITE  # Color of text
             )
+
         elif self.mode == "INTRO":
 
-            if self.player_score <= 0:
-                arcade.draw_text(
-                    "press space to start!",  # Text to show
-                    SCREEN_WIDTH / 2 - 230,  # X position
-                    SCREEN_HEIGHT / 2,  # Y positon
-                    arcade.color.PINK,  # Color of text
-                    40
-                )
+            self.set_mode(self.mode)
 
-            elif self.player_score > 0:
 
-                self.obstacle_list.alpha = 64
+            arcade.draw_text(
+                "press space to start!",  # Text to show
+                SCREEN_WIDTH / 2 - 230,  # X position
+                SCREEN_HEIGHT / 2,  # Y positon
+                arcade.color.PINK,  # Color of text
+                40
+            )
 
-                self.obstacle_list.draw()
 
-                arcade.draw_text(
-                    "final score: {}".format(int(self.player_score) * 10),  # Text to show
-                    SCREEN_WIDTH / 2 - 150,  # X position
-                    SCREEN_HEIGHT / 2 - 60,  # Y positon
-                    arcade.color.PINK,  # Color of text
-                    30
-                )
+        if self.mode == "GAME_OVER":
 
-                arcade.draw_text(
-                    "u ded!",  # Text to show
-                    SCREEN_WIDTH / 2 - 120,  # X position
-                    SCREEN_HEIGHT / 2 + 85,  # Y positon
-                    arcade.color.PINK,  # Color of text
-                    70
-                )
+            self.set_mode(self.mode)
 
-                arcade.draw_text(
-                    "press space to restart!",  # Text to show
-                    SCREEN_WIDTH / 2 - 230,  # X position
-                    SCREEN_HEIGHT / 2,  # Y positon
-                    arcade.color.PINK,  # Color of text
-                    40
-                )
+            self.obstacle_list.draw()
+
+            arcade.draw_text(
+                "final score: {}".format(int(self.player_score) * 10),  # Text to show
+                SCREEN_WIDTH / 2 - 160,  # X position
+                SCREEN_HEIGHT / 2 - 60,  # Y positon
+                arcade.color.PINK,  # Color of text
+                30
+            )
+
+            arcade.draw_text(
+                "game over!",  # Text to show
+                SCREEN_WIDTH / 2 - 260,  # X position
+                SCREEN_HEIGHT / 2 + 75,  # Y positon
+                arcade.color.PINK,  # Color of text
+                80
+            )
+
+            arcade.draw_text(
+                "press space to restart!",  # Text to show
+                SCREEN_WIDTH / 2 - 270,  # X position
+                SCREEN_HEIGHT / 2,  # Y positon
+                arcade.color.PINK,  # Color of text
+                40
+            )
 
     def on_update(self, delta_time):
         """
@@ -486,8 +496,6 @@ class MyGame(arcade.Window):
         """
 
         if self.mode == "IN_GAME":
-
-            # self.fps_test(delta_time)
 
             # Calculate player speed based on the keys pressed
             self.player_sprite.change_x = 0
@@ -537,8 +545,6 @@ class MyGame(arcade.Window):
             if self.player_sprite.change_x > 0 and self.player_sprite.change_y < 0:
                 self.player_sprite.wanted_angle = -135
 
-            #if self.kill_button_pressed == True:
-                # self.player_sprite.player_lives = 0
 
             # Move player with joystick if present
             if self.joystick:
@@ -575,9 +581,10 @@ class MyGame(arcade.Window):
 
             self.player_score += int((10. * delta_time) * 10)
             if self.player_sprite.player_lives < 1:
-                self.mode = "INTRO"
+                self.obstacle_list.alpha = 255
+                self.set_mode("GAME_OVER")
 
-        elif self.mode == "INTRO":
+        elif self.mode == "INTRO" or self.mode == "GAME_OVER":
             self.player_sprite.player_lives = PLAYER_LIVES
 
     def on_key_press(self, key, modifiers):
@@ -586,7 +593,7 @@ class MyGame(arcade.Window):
         """
 
 
-        # Track state of arrow keys
+        # Track mode of arrow keys
         if key == arcade.key.UP:
             self.up_pressed = True
         elif key == arcade.key.DOWN:
@@ -596,8 +603,6 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
 
-        # if key == arcade.key.Q:
-            # self.kill_button_pressed = True
 
         if self.mode == "IN_GAME":
             if key == DASHING_KEY:
@@ -605,11 +610,13 @@ class MyGame(arcade.Window):
 
         elif self.mode == "INTRO":
             if key == arcade.key.SPACE:
-                self.setup()
-                self.mode = "IN_GAME"
+                self.set_mode("IN_GAME")
+
+        elif self.mode == "GAME_OVER":
+            if key == arcade.key.SPACE:
+                self.set_mode("INTRO")
 
 
-            # self.player_shot_list.append(new_shot)
 
     def on_key_release(self, key, modifiers):
         """
@@ -625,8 +632,6 @@ class MyGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.right_pressed = False
 
-        # if key == arcade.key.Q:
-            # self.kill_button_pressed = False
 
     def on_joybutton_press(self, joystick, button_no):
         # print("Button pressed:", button_no)
