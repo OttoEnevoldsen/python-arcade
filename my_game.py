@@ -36,6 +36,8 @@ TAKING_DAMAGE_TIME = 0.75
 LIVES_TAKING_DAMAGE = 1
 DASH_ALPHA = 100
 
+POWERUP_ALIVE_TIME = 3
+
 DASHING_KEY = arcade.key.SPACE
 
 class Player(arcade.Sprite):
@@ -279,6 +281,24 @@ class PlayerShot(arcade.Sprite):
             self.kill()
 
 
+class PowerUp(arcade.Sprite):
+
+    def __init__(self):
+
+        super().__init__("images/Power-ups/powerupRed_star.png", SPRITE_SCALING * 3)
+
+        self.center_x = random.randint(0, SCREEN_WIDTH)
+        self.center_y = random.randint(0, SCREEN_HEIGHT)
+        self.powerup_alive_timer = POWERUP_ALIVE_TIME
+
+    def on_update(self, delta_time):
+
+        self.powerup_alive_timer -= delta_time
+
+        if self.powerup_alive_timer <= POWERUP_ALIVE_TIME / 2:
+            self.alpha = (255 / POWERUP_ALIVE_TIME) * (self.powerup_alive_timer * 2)
+
+
 class MyGame(arcade.Window):
     """
     Main application class.
@@ -292,6 +312,7 @@ class MyGame(arcade.Window):
         # Call the parent class initializer
         super().__init__(width, height)
 
+        self.powerup_spawn_timer = None
         print(self.get_viewport())
 
         self.level_timer = None
@@ -301,6 +322,8 @@ class MyGame(arcade.Window):
         self.player_shot_list = None
         self.obstacle_list = None
         self.number_of_obstacles = None
+
+        self.powerup_list = None
 
         # Set up the player info
         self.player_sprite = None
@@ -349,12 +372,16 @@ class MyGame(arcade.Window):
         # No points when the game starts
         self.player_score = 0
 
+        self.powerup_spawn_timer = 0
+
         self.set_mode("INTRO")
 
         # if self.mode == "IN_GAME":
 
         # Sprite lists
         self.player_shot_list = arcade.SpriteList()
+
+        self.powerup_list = arcade.SpriteList()
 
         # Create a Player object
         self.player_sprite = Player(
@@ -416,6 +443,8 @@ class MyGame(arcade.Window):
 
             # Draw the player sprite
             self.player_sprite.draw()
+
+            self.powerup_list.draw()
 
             # Draw players score on screen
             arcade.draw_text(
@@ -508,6 +537,9 @@ class MyGame(arcade.Window):
                 if self.player_sprite.is_dashing is False and not o.is_harmless:
                     self.player_sprite.taking_damage()
 
+            if any(self.player_sprite.collides_with_list(self.powerup_list)):
+                print("test test 1. 2. 3.")
+
             # Move player with keyboard
             if self.left_pressed and not self.right_pressed:
                 self.player_sprite.change_x = -PLAYER_SPEED_X
@@ -567,9 +599,18 @@ class MyGame(arcade.Window):
                 self.obstacle_list.append(
                     Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
 
+            if self.powerup_spawn_timer <= 0:
+                self.powerup_list.append(PowerUp())
+                self.powerup_list.append(PowerUp())
+
+                self.powerup_spawn_timer = 5
+
             # Update the player shots
             for o in self.obstacle_list:
                 o.on_update(delta_time)
+
+            for p in self.powerup_list:
+                p.on_update(delta_time)
 
             self.level_timer -= delta_time
 
