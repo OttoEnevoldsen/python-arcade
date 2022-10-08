@@ -18,8 +18,8 @@ SCREEN_HEIGHT = 800
 
 # Variables controlling the player
 PLAYER_LIVES = 5
-PLAYER_SPEED_X = 5
-PLAYER_SPEED_Y = 5
+PLAYER_SPEED_X = 7
+PLAYER_SPEED_Y = 7
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
@@ -36,9 +36,10 @@ TAKING_DAMAGE_TIME = 0.75
 LIVES_TAKING_DAMAGE = 1
 DASH_ALPHA = 100
 
-POWERUP_ALIVE_TIME = 3
+POWERUP_ALIVE_TIME = 5
 
 DASHING_KEY = arcade.key.SPACE
+
 
 class Player(arcade.Sprite):
     """
@@ -69,6 +70,8 @@ class Player(arcade.Sprite):
         self.is_dashing = False
         self.dashing_time_left = 0
         self.dash_cooldown = 0
+
+        self.player_score = 0
 
     def dash(self):
         """
@@ -132,6 +135,8 @@ class Player(arcade.Sprite):
 
         if not self.is_dashing:
             self.dash_cooldown -= delta_time
+
+        self.player_score += int((10 * delta_time) * 10)
 
 
 class Obstacle(arcade.Sprite):
@@ -295,8 +300,36 @@ class PowerUp(arcade.Sprite):
 
         self.powerup_alive_timer -= delta_time
 
-        if self.powerup_alive_timer <= POWERUP_ALIVE_TIME / 2:
-            self.alpha = (255 / POWERUP_ALIVE_TIME) * (self.powerup_alive_timer * 2)
+        # powerup fades out when only half of its alive time is left
+        try:
+            if self.powerup_alive_timer <= POWERUP_ALIVE_TIME / 2:
+                self.alpha = (255 / POWERUP_ALIVE_TIME) * (self.powerup_alive_timer * 2)
+        except ValueError:
+            self.alpha = 0
+
+    def pick_up(self, player):
+        """
+        what to happen when powerup is picked up
+        """
+        pass
+
+
+class PowerUpExtraLife(PowerUp):
+
+    def pick_up(self, player):
+        """
+        what to happen when powerup is picked up
+        """
+        player.player_lives += 1
+
+
+class PowerUpExtraScore(PowerUp):
+
+    def pick_up(self, player):
+        """
+        what to happen when powerup is picked up
+        """
+        player.player_score += 200
 
 
 class MyGame(arcade.Window):
@@ -316,7 +349,6 @@ class MyGame(arcade.Window):
         print(self.get_viewport())
 
         self.level_timer = None
-        self.player_score = None
 
         # Variable that will hold a list of shots fired by the player
         self.player_shot_list = None
@@ -327,8 +359,6 @@ class MyGame(arcade.Window):
 
         # Set up the player info
         self.player_sprite = None
-        self.player_score = None
-
         # Track the current mode of what key is pressed
         self.left_pressed = False
         self.right_pressed = False
@@ -369,9 +399,6 @@ class MyGame(arcade.Window):
     def setup(self):
         """ Set up the game and initialize the variables. """
 
-        # No points when the game starts
-        self.player_score = 0
-
         self.powerup_spawn_timer = 0
 
         self.set_mode("INTRO")
@@ -397,12 +424,13 @@ class MyGame(arcade.Window):
         self.new_level()
 
     def set_mode(self, mode):
-        
+
         if self.mode == mode:
             return
 
         if mode == "IN_GAME":
             self.setup()
+            self.player_sprite.player_score = 0
 
         if mode == "INTRO":
             pass
@@ -455,7 +483,7 @@ class MyGame(arcade.Window):
             )
 
             arcade.draw_text(
-                "score: {}".format(int(self.player_score) * 10),  # Text to show
+                "score: {}".format(int(self.player_sprite.player_score) * 10),  # Text to show
                 10,  # X position
                 SCREEN_HEIGHT - 40,  # Y positon
                 arcade.color.WHITE  # Color of text
@@ -479,7 +507,6 @@ class MyGame(arcade.Window):
 
             self.set_mode(self.mode)
 
-
             arcade.draw_text(
                 "press space to start!",  # Text to show
                 SCREEN_WIDTH / 2 - 230,  # X position
@@ -488,9 +515,7 @@ class MyGame(arcade.Window):
                 40
             )
 
-
         if self.mode == "GAME_OVER":
-
             self.set_mode(self.mode)
 
             self.obstacle_list.draw()
@@ -537,8 +562,11 @@ class MyGame(arcade.Window):
                 if self.player_sprite.is_dashing is False and not o.is_harmless:
                     self.player_sprite.taking_damage()
 
-            if any(self.player_sprite.collides_with_list(self.powerup_list)):
-                print("test test 1. 2. 3.")
+            powerups_colliding_with_player = self.player_sprite.collides_with_list(self.powerup_list)
+
+            for powerup in powerups_colliding_with_player:
+                powerup.pick_up(self.player_sprite)
+                powerup.kill()
 
             # Move player with keyboard
             if self.left_pressed and not self.right_pressed:
@@ -577,7 +605,6 @@ class MyGame(arcade.Window):
             if self.player_sprite.change_x > 0 and self.player_sprite.change_y < 0:
                 self.player_sprite.wanted_angle = -135
 
-
             # Move player with joystick if present
             if self.joystick:
                 self.player_sprite.change_x = round(self.joystick.x) * PLAYER_SPEED_X
@@ -594,14 +621,16 @@ class MyGame(arcade.Window):
             # Update player sprite
             self.player_sprite.update(delta_time)
 
+            self.powerup_spawn_timer -= delta_time
+
             # add missing obstacles
             while len(self.obstacle_list) < self.number_of_obstacles:
                 self.obstacle_list.append(
                     Obstacle(speed=self.obstacle_speed, type=random.randint(1, 3), spawn_on_edge=True))
 
             if self.powerup_spawn_timer <= 0:
-                self.powerup_list.append(PowerUp())
-                self.powerup_list.append(PowerUp())
+                self.powerup_list.append(random.choice([PowerUpExtraLife(), PowerUpExtraScore()]))
+                # self.powerup_list.append(PowerUpExtraLife())
 
                 self.powerup_spawn_timer = 5
 
@@ -620,7 +649,6 @@ class MyGame(arcade.Window):
             if self.obstacle_speed > Obstacle.obstacle_max_speed:
                 self.obstacle_speed = Obstacle.obstacle_max_speed
 
-            self.player_score += int((10. * delta_time) * 10)
             if self.player_sprite.player_lives < 1:
                 self.obstacle_list.alpha = 255
                 self.set_mode("GAME_OVER")
@@ -633,7 +661,6 @@ class MyGame(arcade.Window):
         Called whenever a key is pressed.
         """
 
-
         # Track mode of arrow keys
         if key == arcade.key.UP:
             self.up_pressed = True
@@ -643,7 +670,6 @@ class MyGame(arcade.Window):
             self.left_pressed = True
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
-
 
         if self.mode == "IN_GAME":
             if key == DASHING_KEY:
@@ -656,8 +682,6 @@ class MyGame(arcade.Window):
         elif self.mode == "GAME_OVER":
             if key == arcade.key.SPACE:
                 self.set_mode("INTRO")
-
-
 
     def on_key_release(self, key, modifiers):
         """
@@ -672,7 +696,6 @@ class MyGame(arcade.Window):
             self.left_pressed = False
         elif key == arcade.key.RIGHT:
             self.right_pressed = False
-
 
     def on_joybutton_press(self, joystick, button_no):
         # print("Button pressed:", button_no)
