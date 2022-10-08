@@ -521,7 +521,7 @@ class MyGame(arcade.Window):
             self.obstacle_list.draw()
 
             arcade.draw_text(
-                "final score: {}".format(int(self.player_score) * 10),  # Text to show
+                "final score: {}".format(int(self.player_sprite.player_score) * 10),  # Text to show
                 SCREEN_WIDTH / 2 - 160,  # X position
                 SCREEN_HEIGHT / 2 - 60,  # Y positon
                 arcade.color.PINK,  # Color of text
