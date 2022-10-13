@@ -18,12 +18,13 @@ SCREEN_HEIGHT = 800
 
 # Variables controlling the player
 PLAYER_LIVES = 5
-PLAYER_SPEED_X = 7
-PLAYER_SPEED_Y = 7
+PLAYER_SPEED_X = 10
+PLAYER_SPEED_Y = 10
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
-OBSTACLE_SPEED = 6
+OBSTACLE_SPEED = 12
+OBSTACLE_AMOUNT = 50
 DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
 OBSTACLE_HARMLESS_TIME = 2.2
@@ -58,10 +59,13 @@ class Player(arcade.Sprite):
         super().__init__(**kwargs)
 
         self.taking_damage_timer = 0
-        self.taking_damage_path = "images/playerShip1_red.png"
-        self.normal_path = "images/playerShip1_blue.png"
 
-        self.texture = arcade.load_texture(self.normal_path)
+        self.texture_dict = {
+            "damage": arcade.load_texture("images/playerShip1_red.png"),
+            "normal": arcade.load_texture("images/playerShip1_blue.png")
+        }
+
+        self.texture = self.texture_dict["normal"]
 
         self.player_lives = PLAYER_LIVES
 
@@ -86,7 +90,7 @@ class Player(arcade.Sprite):
     def taking_damage(self):
         if self.taking_damage_timer == 0:
             self.taking_damage_timer = TAKING_DAMAGE_TIME
-            self.texture = arcade.load_texture(self.taking_damage_path)
+            self.texture = self.texture_dict["damage"]
             self.player_lives -= LIVES_TAKING_DAMAGE
 
     def update(self, delta_time):
@@ -103,7 +107,7 @@ class Player(arcade.Sprite):
         if self.taking_damage_timer > 0:
             self.taking_damage_timer -= delta_time
         elif self.taking_damage_timer <= 0:
-            self.texture = arcade.load_texture(self.normal_path)
+            self.texture = self.texture_dict["normal"]
             self.taking_damage_timer = 0
 
         d = self.angle - self.wanted_angle
@@ -316,6 +320,12 @@ class PowerUp(arcade.Sprite):
 
 class PowerUpExtraLife(PowerUp):
 
+    def __init__(self):
+
+        super().__init__()
+
+        self.texture = arcade.load_texture("images/Power-ups/powerupRed_shield.png")
+
     def pick_up(self, player):
         """
         what to happen when powerup is picked up
@@ -324,6 +334,12 @@ class PowerUpExtraLife(PowerUp):
 
 
 class PowerUpExtraScore(PowerUp):
+
+    def __init__(self):
+
+        super().__init__()
+
+        self.texture = arcade.load_texture("images/Power-ups/powerupBlue_star.png")
 
     def pick_up(self, player):
         """
@@ -419,7 +435,7 @@ class MyGame(arcade.Window):
         self.current_level = 0
         self.obstacle_speed = OBSTACLE_SPEED
 
-        self.number_of_obstacles = 80
+        self.number_of_obstacles = OBSTACLE_AMOUNT
 
         self.new_level()
 
