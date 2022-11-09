@@ -23,7 +23,7 @@ PLAYER_SPEED_Y = 10
 PLAYER_START_X = SCREEN_WIDTH / 2
 PLAYER_START_Y = SCREEN_HEIGHT / 2
 PLAYER_SHOT_SPEED = 4
-OBSTACLE_SPEED = 12
+OBSTACLE_SPEED = 16
 OBSTACLE_AMOUNT = 50
 DASHING_TIME = 0.3
 DASH_COOLDOWN = 1
@@ -362,7 +362,7 @@ class MyGame(arcade.Window):
         super().__init__(width, height)
 
         self.powerup_spawn_timer = None
-        print(self.get_viewport())
+        # print(self.get_viewport())
 
         self.level_timer = None
 
@@ -526,9 +526,17 @@ class MyGame(arcade.Window):
             arcade.draw_text(
                 "press space to start!",  # Text to show
                 SCREEN_WIDTH / 2 - 230,  # X position
-                SCREEN_HEIGHT / 2,  # Y positon
+                SCREEN_HEIGHT / 2,  # Y position
                 arcade.color.PINK,  # Color of text
-                40
+                40,  # width
+            )
+
+            arcade.draw_text(
+                "press esc to quit!",  # Text to show
+                SCREEN_WIDTH / 2 - 230,  # X position
+                SCREEN_HEIGHT / 2 - 50,  # Y position
+                arcade.color.PINK,  # Color of text
+                20,  # width
             )
 
         if self.mode == "GAME_OVER":
@@ -694,6 +702,8 @@ class MyGame(arcade.Window):
         elif self.mode == "INTRO":
             if key == arcade.key.SPACE:
                 self.set_mode("IN_GAME")
+            if key == arcade.key.ESCAPE:
+                arcade.window_commands.exit()
 
         elif self.mode == "GAME_OVER":
             if key == arcade.key.SPACE:
