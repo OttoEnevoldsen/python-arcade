@@ -494,28 +494,28 @@ class MyGame(arcade.Window):
             arcade.draw_text(
                 "LIVES: {}".format(self.player_sprite.player_lives),  # Text to show
                 10,  # X position
-                SCREEN_HEIGHT - 20,  # Y positon
+                SCREEN_HEIGHT - 20,  # Y position
                 arcade.color.WHITE  # Color of text
             )
 
             arcade.draw_text(
                 "score: {}".format(int(self.player_sprite.player_score) * 10),  # Text to show
                 10,  # X position
-                SCREEN_HEIGHT - 40,  # Y positon
+                SCREEN_HEIGHT - 40,  # Y position
                 arcade.color.WHITE  # Color of text
             )
 
             arcade.draw_text(
                 "Next level in: {}".format(int(self.level_timer)),  # Text to show
                 10,  # X position
-                SCREEN_HEIGHT - 60,  # Y positon
+                SCREEN_HEIGHT - 60,  # Y position
                 arcade.color.WHITE  # Color of text
             )
 
             arcade.draw_text(
                 "Level: {}".format(int(self.current_level)),  # Text to show
                 10,  # X position
-                SCREEN_HEIGHT - 80,  # Y positon
+                SCREEN_HEIGHT - 80,  # Y position
                 arcade.color.WHITE  # Color of text
             )
 
@@ -547,7 +547,7 @@ class MyGame(arcade.Window):
             arcade.draw_text(
                 "final score: {}".format(int(self.player_sprite.player_score) * 10),  # Text to show
                 SCREEN_WIDTH / 2 - 160,  # X position
-                SCREEN_HEIGHT / 2 - 60,  # Y positon
+                SCREEN_HEIGHT / 2 - 60,  # Y position
                 arcade.color.PINK,  # Color of text
                 30
             )
@@ -555,7 +555,7 @@ class MyGame(arcade.Window):
             arcade.draw_text(
                 "game over!",  # Text to show
                 SCREEN_WIDTH / 2 - 260,  # X position
-                SCREEN_HEIGHT / 2 + 75,  # Y positon
+                SCREEN_HEIGHT / 2 + 75,  # Y position
                 arcade.color.PINK,  # Color of text
                 80
             )
@@ -563,7 +563,7 @@ class MyGame(arcade.Window):
             arcade.draw_text(
                 "press space to restart!",  # Text to show
                 SCREEN_WIDTH / 2 - 270,  # X position
-                SCREEN_HEIGHT / 2,  # Y positon
+                SCREEN_HEIGHT / 2,  # Y position
                 arcade.color.PINK,  # Color of text
                 40
             )
