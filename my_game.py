@@ -291,7 +291,6 @@ class PlayerShot(arcade.Sprite):
 
 
 class PowerUp(arcade.Sprite):
-
     def __init__(self):
 
         super().__init__("images/Power-ups/powerupRed_star.png", SPRITE_SCALING * 3)
@@ -299,6 +298,8 @@ class PowerUp(arcade.Sprite):
         self.center_x = random.randint(0, SCREEN_WIDTH)
         self.center_y = random.randint(0, SCREEN_HEIGHT)
         self.powerup_alive_timer = POWERUP_ALIVE_TIME
+        self.sound = arcade.sound.load_sound(':resources:sounds/upgrade4.wav')
+        self.sound.play(volume=0)
 
     def on_update(self, delta_time):
 
@@ -315,7 +316,6 @@ class PowerUp(arcade.Sprite):
         """
         what to happen when powerup is picked up
         """
-        pass
 
 
 class PowerUpExtraLife(PowerUp):
@@ -331,6 +331,7 @@ class PowerUpExtraLife(PowerUp):
         what to happen when powerup is picked up
         """
         player.player_lives += 1
+        self.sound.play()
 
 
 class PowerUpExtraScore(PowerUp):
@@ -346,6 +347,7 @@ class PowerUpExtraScore(PowerUp):
         what to happen when powerup is picked up
         """
         player.player_score += 200
+        self.sound.play()
 
 
 class MyGame(arcade.Window):
@@ -362,6 +364,7 @@ class MyGame(arcade.Window):
         super().__init__(width, height)
 
         self.powerup_spawn_timer = None
+        #self.cool_sound = arcade.sound.load_sound(':resources:sounds/upgrade1.wav')
         # print(self.get_viewport())
 
         self.level_timer = None
@@ -698,6 +701,7 @@ class MyGame(arcade.Window):
         if self.mode == "IN_GAME":
             if key == DASHING_KEY:
                 self.player_sprite.dash()
+                #self.cool_sound.play()
 
         elif self.mode == "INTRO":
             if key == arcade.key.SPACE:
